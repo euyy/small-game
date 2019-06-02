@@ -347,8 +347,7 @@ mov te.centerPosY,120
 ;********************************************************************
 ; 设置圆形窗口并设置“总在最前面”
 ;********************************************************************
-		invoke	SetWindowPos,hWinMain,HWND_TOPMOST,0,0,0,0,\
-			SWP_NOMOVE or SWP_NOSIZE
+		;invoke	SetWindowPos,hWinMain,HWND_TOPMOST,0,0,0,0,	SWP_NOMOVE or SWP_NOSIZE
 ;********************************************************************
 ; 建立背景
 ;********************************************************************
@@ -373,6 +372,18 @@ _Quit		proc
 
 _Quit		endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+_Down		proc
+	.if te.kind==0
+
+	.endif	
+	
+	
+	
+	inc te.centerPosY
+	ret
+_Down		endp	
+
+
 _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPS:PAINTSTRUCT
 		local	@hDC
@@ -381,6 +392,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		mov	eax,uMsg
 ;********************************************************************
 		.if	eax ==	WM_TIMER
+			invoke	_Down
 			invoke	_CreateFrontPic
 			invoke	InvalidateRect,hWnd,NULL,FALSE
 ;********************************************************************
