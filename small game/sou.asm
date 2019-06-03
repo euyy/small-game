@@ -39,9 +39,11 @@ IDM_EXIT	equ	104
 BLOCK_SIZE	equ 30
 BLOCK_NUM_X equ 15
 BLOCK_NUM_Y equ 20
+BLOCK_NUM	equ 300;BLOCK_NUM_X*BLOCK_NUM_Y
 WIN_SIZE_X	equ 15*30;BLOCK_NUM_X*BLOCK_SIZE
 WIN_SIZE_Y	equ 20*30;BLOCK_NUM_Y*BLOCK_SIZE
 
+DOWN_SPEED	equ 2
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 数据结构
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -51,6 +53,7 @@ kind		db	?
 direction	db	?
 centerPosX	dd	?
 centerPosY	dd	?
+canChange	db	1
 Tetris ends	
 
 
@@ -372,14 +375,119 @@ _Quit		proc
 
 _Quit		endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-_Down		proc
-	.if te.kind==0
+_NewTe		proc
+	mov te.kind,0
+	mov te.direction,0
+	mov te.centerPosX,120
+	mov te.centerPosY,0
+	mov te.canChange,1
+	ret
+_NewTe		endp	
 
+
+
+_Down		proc
+	local	blockNo
+	local	hitFlag1,hitFlag2,hitFlag3,hitFlag4
+	local	newTe
+	mov newTe,0
+
+	mov eax, te.centerPosY
+	xor edx,edx
+	mov ebx,BLOCK_SIZE
+	div ebx
+	mov blockNo, eax
+	
+	.if edx == 0
+		;mov eax,edx
+		xor edx,edx
+		mov ebx,BLOCK_NUM_X
+		mul ebx
+		mov blockNo,eax
+		mov eax,te.centerPosX
+		xor edx,edx
+		mov ebx,BLOCK_SIZE
+		div ebx
+		add blockNo,eax
+				
+		.if te.kind == 0
+			mov eax,blockNo
+			add eax,BLOCK_NUM_X
+			add eax,BLOCK_NUM_X
+			add eax,BLOCK_NUM_X
+			.if blockList[eax] == 1 || eax >= BLOCK_NUM
+				mov hitFlag1,1
+			.else
+				mov hitFlag1,0
+			.endif	
+
+			mov hitFlag2,0
+			mov eax,blockNo
+			add eax,BLOCK_NUM_X
+			sub eax,1
+			.if blockList[eax] == 1 || eax >= BLOCK_NUM
+				mov hitFlag2,1
+			.endif
+			inc eax
+			.if blockList[eax] == 1 || eax >= BLOCK_NUM
+				mov hitFlag2,1
+			.endif
+			inc eax
+			.if blockList[eax] == 1 || eax >= BLOCK_NUM
+				mov hitFlag2,1
+			.endif
+			inc eax
+			.if blockList[eax] == 1 || eax >= BLOCK_NUM
+				mov hitFlag2,1
+			.endif
+
+			.if te.direction == 0
+				.if hitFlag1 == 1
+					mov eax,blockNo
+					sub eax,BLOCK_NUM_X
+					mov blockList[eax],1
+					add eax,BLOCK_NUM_X
+					mov blockList[eax],1
+					add eax,BLOCK_NUM_X
+					mov blockList[eax],1
+					add eax,BLOCK_NUM_X
+					mov blockList[eax],1
+					mov newTe,1
+				.else
+					add te.centerPosY,DOWN_SPEED
+					.if hitFlag2 == 1
+						mov te.canChange,0
+					.endif	
+				.endif	
+			.else
+				.if hitFlag2 == 1
+					mov eax,blockNo
+					sub eax,1
+					mov blockList[eax],1
+					add eax,1
+					mov blockList[eax],1
+					add eax,1
+					mov blockList[eax],1
+					add eax,1
+					mov blockList[eax],1
+					mov newTe,1
+				.else
+					add te.centerPosY,DOWN_SPEED
+					.if hitFlag1 == 1
+						mov te.canChange,0
+					.endif	
+				.endif	
+			.endif	
+		.endif
 	.endif	
-	
-	
-	
-	inc te.centerPosY
+
+	.if newTe == 1
+		invoke	_DeleteBackGround
+		invoke	_CreateBackGround
+		invoke _NewTe
+	.endif	
+
+	add te.centerPosY,DOWN_SPEED
 	ret
 _Down		endp	
 
@@ -388,7 +496,7 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPS:PAINTSTRUCT
 		local	@hDC
 		local	@stPos:POINT
-
+		local	posX,posY
 		mov	eax,uMsg
 ;********************************************************************
 		.if	eax ==	WM_TIMER
@@ -421,20 +529,21 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				xor	eax,eax
 				ret
 			.elseif	eax == VK_W;change direction
-				.if te.kind ==0
-					.if te.direction==0
-						mov te.direction,1
-					.elseif	 te.direction==1
-						mov te.direction,0
+				.if te.canChange == 1
+					.if te.kind ==0
+						.if te.direction==0
+							mov te.direction,1
+						.elseif	 te.direction==1
+							mov te.direction,0
+						.endif	
 					.endif	
 				.endif	
+			.elseif	eax == VK_A		
+				sub te.centerPosX,BLOCK_SIZE		
+			.elseif	eax == VK_S			
 				
-			.elseif	eax == VK_A
-
-			.elseif	eax == VK_S
-
 			.elseif	eax == VK_D
-
+				add te.centerPosX,BLOCK_SIZE
 			.endif	
 		.elseif	eax ==	WM_COMMAND
 			mov	eax,wParam
