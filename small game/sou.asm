@@ -43,7 +43,7 @@ BLOCK_NUM	equ 300;BLOCK_NUM_X*BLOCK_NUM_Y
 WIN_SIZE_X	equ 15*30;BLOCK_NUM_X*BLOCK_SIZE
 WIN_SIZE_Y	equ 20*30;BLOCK_NUM_Y*BLOCK_SIZE
 
-DOWN_SPEED	equ 2
+DOWN_SPEED	equ 1
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 数据结构
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -83,13 +83,7 @@ te		Tetris <>
 
 		.const
 
-szClassName	db	'Clock',0
-dwPara180	dw	180
-dwRadius	dw	CLOCK_SIZE/2
-szMenuBack1	db	'使用格子背景(&A)',0
-szMenuBack2	db	'使用花布背景(&B)',0
-szMenuCircle1	db	'使用淡蓝色边框(&C)',0
-szMenuCircle2	db	'使用粉红色边框(&D)',0
+szClassName	db	'Tetris',0
 szMenuExit	db	'退出(&X)...',0
 
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -323,15 +317,21 @@ _DeleteBackGround	proc
 
 _DeleteBackGround	endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+_NewTe		proc
+	mov te.kind,0
+	mov te.direction,0
+	mov te.centerPosX,120
+	mov te.centerPosY,0
+	mov te.canChange,1
+	ret
+_NewTe		endp	
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _Init		proc
 		local	@hBmpBack,@hBmpCircle
 ;********************************************************************
 ; for debug
 ;********************************************************************
-mov te.kind,0
-mov te.direction,0
-mov te.centerPosX,120
-mov te.centerPosY,120
+		invoke _NewTe
 
 ;********************************************************************
 ; 初始化菜单
@@ -358,7 +358,7 @@ mov te.centerPosY,120
 		mov	dwNowCircle,IDB_CIRCLE1
 		invoke	_CreateBackGround
 		invoke	_CreateFrontPic
-		invoke	SetTimer,hWinMain,ID_TIMER,100,NULL
+		invoke	SetTimer,hWinMain,ID_TIMER,20,NULL
 
 		ret
 
@@ -375,21 +375,11 @@ _Quit		proc
 
 _Quit		endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-_NewTe		proc
-	mov te.kind,0
-	mov te.direction,0
-	mov te.centerPosX,120
-	mov te.centerPosY,0
-	mov te.canChange,1
-	ret
-_NewTe		endp	
-
-
-
 _Down		proc
 	local	blockNo
 	local	hitFlag1,hitFlag2,hitFlag3,hitFlag4
 	local	newTe
+	local	idx,flag
 	mov newTe,0
 
 	mov eax, te.centerPosY
@@ -482,6 +472,25 @@ _Down		proc
 	.endif	
 
 	.if newTe == 1
+		mov idx,0
+		.while idx< BLOCK_NUM_Y
+		mov flag,0
+		mov eax,idx
+		mov ebx,BLOCK_NUM_X
+		mul ebx
+		xor ecx,ecx
+		.while 
+			.if blockList[eax][ebx] == 0
+				mov flag,1
+			.endif	
+		.endw
+		.if flag==0
+		;<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		;<<<<<<<<<<<<<<<<<<<<<<<<<<
+		.endif	
+		inc idx
+		.endw
 		invoke	_DeleteBackGround
 		invoke	_CreateBackGround
 		invoke _NewTe
@@ -491,7 +500,7 @@ _Down		proc
 	ret
 _Down		endp	
 
-
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPS:PAINTSTRUCT
 		local	@hDC
