@@ -14,27 +14,18 @@ includelib	msvcrt.lib
 include		include/Gdi32.inc
 includelib	Gdi32.lib
 
-sprintf		proto	C :dword, :dword, :vararg
+;sprintf		proto	C :dword, :dword, :vararg
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; Equ 等值定义
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-CLOCK_SIZE	equ	600
+;CLOCK_SIZE	equ	600
 ICO_MAIN	equ	100
 IDC_MAIN	equ	100
 IDC_MOVE	equ	101
 IDB_BACK1	equ	100
-IDB_CIRCLE1	equ	101
-IDB_MASK1	equ	102
 IDB_BACK2	equ	103
-IDB_CIRCLE2	equ	104
-IDB_MASK2	equ	105
 ID_TIMER	equ	1
-IDM_BACK1	equ	100
-IDM_BACK2	equ	101
-IDM_CIRCLE1	equ	102
-IDM_CIRCLE2	equ	103
 IDM_EXIT	equ	104
-
 
 BLOCK_SIZE	equ 30
 BLOCK_NUM_X equ 15
@@ -77,10 +68,12 @@ dwNowCircle	dd		?
 
 lastTime	SYSTEMTIME <>
 
-blockList	db 1000 DUP(0)
+blockList		db 1000 DUP(0)
+blockListTemp	db 1000 DUP(0)
 
 te		Tetris <>
-
+error	dd ?
+hBmpBackMap dd ?
 		.const
 
 szClassName	db	'Tetris',0
@@ -209,8 +202,7 @@ _CreateFrontPic	proc
 _CreateFrontPic	endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _CreateBackGround	proc
-			local	@hDc,@hDcCircle,@hDcMask
-			local	@hBmpBack,@hBmpCircle,@hBmpMask
+			local	@hDc;,@hBmpBack
 			local	idx,posX,posY,posX_,posY_
 ;********************************************************************
 ; 建立需要的临时对象
@@ -221,10 +213,6 @@ _CreateBackGround	proc
 		mov	hDcBack,eax
 		invoke	CreateCompatibleDC,@hDc
 		mov	hDcClock,eax
-		invoke	CreateCompatibleDC,@hDc
-		mov	@hDcCircle,eax
-		invoke	CreateCompatibleDC,@hDc
-		mov	@hDcMask,eax
 		invoke	CreateCompatibleBitmap,@hDc,WIN_SIZE_X,WIN_SIZE_Y
 		mov	hBmpBack,eax
 		invoke	CreateCompatibleBitmap,@hDc,WIN_SIZE_X,WIN_SIZE_Y
@@ -232,22 +220,18 @@ _CreateBackGround	proc
 		invoke	ReleaseDC,hWinMain,@hDc
 
 		invoke	LoadBitmap,hInstance,dwNowBack
-		mov	@hBmpBack,eax
-		invoke	LoadBitmap,hInstance,dwNowCircle
-		mov	@hBmpCircle,eax
-		mov	eax,dwNowCircle
-		inc	eax
-		invoke	LoadBitmap,hInstance,eax
-		mov	@hBmpMask,eax
+		mov	hBmpBackMap,eax
+		
+		invoke GetLastError
+		mov error,eax
 
 		invoke	SelectObject,hDcBack,hBmpBack
 		invoke	SelectObject,hDcClock,hBmpClock
-		invoke	SelectObject,@hDcCircle,@hBmpCircle
-		invoke	SelectObject,@hDcMask,@hBmpMask
+		
 ;********************************************************************
 ; 以背景图片填充
 ;********************************************************************
-		invoke	CreatePatternBrush,@hBmpBack
+		invoke	CreatePatternBrush,hBmpBackMap
 		push	eax
 		invoke	SelectObject,hDcBack,eax
 		invoke	PatBlt,hDcBack,0,0,WIN_SIZE_X,WIN_SIZE_Y,PATCOPY
@@ -293,16 +277,8 @@ _CreateBackGround	proc
 			inc idx
 		.endw	
 		
+		invoke	DeleteObject,hBmpBackMap
 
-
-
-
-
-		invoke	DeleteDC,@hDcCircle
-		invoke	DeleteDC,@hDcMask
-		invoke	DeleteObject,@hBmpBack
-		invoke	DeleteObject,@hBmpCircle
-		invoke	DeleteObject,@hBmpMask
 		ret
 
 _CreateBackGround	endp
@@ -327,7 +303,7 @@ _NewTe		proc
 _NewTe		endp	
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _Init		proc
-		local	@hBmpBack,@hBmpCircle
+		;local	@hBmpBack,@hBmpCircle
 ;********************************************************************
 ; for debug
 ;********************************************************************
@@ -338,15 +314,7 @@ _Init		proc
 ;********************************************************************
 		invoke	CreatePopupMenu
 		mov	hMenu,eax
-		;invoke	AppendMenu,hMenu,0,IDM_BACK1,offset szMenuBack1
-		;invoke	AppendMenu,hMenu,0,IDM_BACK2,offset szMenuBack2
-		;invoke	AppendMenu,hMenu,MF_SEPARATOR,0,NULL
-		;invoke	AppendMenu,hMenu,0,IDM_CIRCLE1,offset szMenuCircle1
-		;invoke	AppendMenu,hMenu,0,IDM_CIRCLE2,offset szMenuCircle2
-		;invoke	AppendMenu,hMenu,MF_SEPARATOR,0,NULL
 		invoke	AppendMenu,hMenu,0,IDM_EXIT,offset szMenuExit
-		;invoke	CheckMenuRadioItem,hMenu,IDM_BACK1,IDM_BACK2,IDM_BACK1,NULL
-		;invoke	CheckMenuRadioItem,hMenu,IDM_CIRCLE1,IDM_CIRCLE2,IDM_CIRCLE1,NULL
 ;********************************************************************
 ; 设置圆形窗口并设置“总在最前面”
 ;********************************************************************
@@ -355,11 +323,12 @@ _Init		proc
 ; 建立背景
 ;********************************************************************
 		mov	dwNowBack,IDB_BACK1
-		mov	dwNowCircle,IDB_CIRCLE1
+
+		
+		
+		invoke	SetTimer,hWinMain,ID_TIMER,20,NULL
 		invoke	_CreateBackGround
 		invoke	_CreateFrontPic
-		invoke	SetTimer,hWinMain,ID_TIMER,20,NULL
-
 		ret
 
 _Init		endp
@@ -474,22 +443,29 @@ _Down		proc
 	.if newTe == 1
 		mov idx,0
 		.while idx< BLOCK_NUM_Y
-		mov flag,0
-		mov eax,idx
-		mov ebx,BLOCK_NUM_X
-		mul ebx
-		xor ecx,ecx
-		.while 
-			.if blockList[eax][ebx] == 0
-				mov flag,1
+			mov flag,0
+			mov eax,idx
+			mov ebx,BLOCK_NUM_X
+			mul ebx
+			xor ecx,ecx
+			.while ecx<BLOCK_NUM_X
+				.if blockList[eax][ecx] == 0
+					mov flag,1
+				.endif	
+				inc ecx
+			.endw
+			.if flag==0
+				;<<<<<<<<<<<<<<<<<<<<<<<<<<
+				mov ecx,eax
+				std
+				lea edi, blockList[eax+BLOCK_NUM_X-1]
+				lea esi, blockList[eax-1]
+				
+				rep movsb
+				cld
+				;<<<<<<<<<<<<<<<<<<<<<<<<<<
 			.endif	
-		.endw
-		.if flag==0
-		;<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-		;<<<<<<<<<<<<<<<<<<<<<<<<<<
-		.endif	
-		inc idx
+			inc idx
 		.endw
 		invoke	_DeleteBackGround
 		invoke	_CreateBackGround
@@ -541,34 +517,45 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				.if te.canChange == 1
 					.if te.kind ==0
 						.if te.direction==0
-							mov te.direction,1
+							.if te.centerPosX >= BLOCK_SIZE && te.centerPosX <= BLOCK_NUM_X*BLOCK_SIZE-3*BLOCK_SIZE
+								mov te.direction,1
+							.endif	
 						.elseif	 te.direction==1
 							mov te.direction,0
 						.endif	
 					.endif	
 				.endif	
 			.elseif	eax == VK_A		
-				sub te.centerPosX,BLOCK_SIZE		
+				.if te.kind == 0
+					.if te.direction == 0
+						.if te.centerPosX >= BLOCK_SIZE
+							sub te.centerPosX,BLOCK_SIZE
+						.endif	
+					.elseif	
+						.if te.centerPosX >= 2*BLOCK_SIZE
+							sub te.centerPosX,BLOCK_SIZE
+						.endif
+					.endif	
+				.endif	
+						
 			.elseif	eax == VK_S			
 				
 			.elseif	eax == VK_D
-				add te.centerPosX,BLOCK_SIZE
+				.if te.kind == 0
+					.if te.direction == 0
+						.if te.centerPosX <= BLOCK_NUM_X*BLOCK_SIZE-2*BLOCK_SIZE
+							add te.centerPosX,BLOCK_SIZE
+						.endif	
+					.elseif	
+						.if te.centerPosX <= BLOCK_NUM_X*BLOCK_SIZE-4*BLOCK_SIZE
+							add te.centerPosX,BLOCK_SIZE
+						.endif
+					.endif	
+				.endif
 			.endif	
 		.elseif	eax ==	WM_COMMAND
 			mov	eax,wParam
-			.if	ax ==	IDM_BACK1
-				mov	dwNowBack,IDB_BACK1
-				invoke	CheckMenuRadioItem,hMenu,IDM_BACK1,IDM_BACK2,IDM_BACK1,NULL
-			.elseif	ax ==	IDM_BACK2
-				mov	dwNowBack,IDB_BACK2
-				invoke	CheckMenuRadioItem,hMenu,IDM_BACK1,IDM_BACK2,IDM_BACK2,NULL
-			.elseif	ax ==	IDM_CIRCLE1
-				mov	dwNowCircle,IDB_CIRCLE1
-				invoke	CheckMenuRadioItem,hMenu,IDM_CIRCLE1,IDM_CIRCLE2,IDM_CIRCLE1,NULL
-			.elseif	ax ==	IDM_CIRCLE2
-				mov	dwNowCircle,IDB_CIRCLE2
-				invoke	CheckMenuRadioItem,hMenu,IDM_CIRCLE1,IDM_CIRCLE2,IDM_CIRCLE2,NULL
-			.elseif	ax ==	IDM_EXIT
+			.if ax ==	IDM_EXIT
 				call	_Quit
 				xor	eax,eax
 				ret
