@@ -18,7 +18,6 @@ includelib	Gdi32.lib
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; Equ 等值定义
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-;CLOCK_SIZE	equ	600
 ICO_MAIN	equ	100
 IDC_MAIN	equ	100
 IDC_MOVE	equ	101
@@ -34,7 +33,7 @@ BLOCK_NUM	equ 300;BLOCK_NUM_X*BLOCK_NUM_Y
 WIN_SIZE_X	equ 15*30;BLOCK_NUM_X*BLOCK_SIZE
 WIN_SIZE_Y	equ 20*30;BLOCK_NUM_Y*BLOCK_SIZE
 
-DOWN_SPEED	equ 1
+DOWN_SPEED	equ 3
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 数据结构
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -66,7 +65,7 @@ hDcClock	dd		?
 dwNowBack	dd		?
 dwNowCircle	dd		?
 
-lastTime	SYSTEMTIME <>
+;lastTime	SYSTEMTIME <>
 
 blockList		db 1000 DUP(0)
 blockListTemp	db 1000 DUP(0)
@@ -413,9 +412,11 @@ _Down		proc
 					mov blockList[eax],1
 					mov newTe,1
 				.else
-					add te.centerPosY,DOWN_SPEED
+					;add te.centerPosY,DOWN_SPEED
 					.if hitFlag2 == 1
 						mov te.canChange,0
+					.else
+						mov te.canChange,1
 					.endif	
 				.endif	
 			.else
@@ -431,9 +432,11 @@ _Down		proc
 					mov blockList[eax],1
 					mov newTe,1
 				.else
-					add te.centerPosY,DOWN_SPEED
+					;add te.centerPosY,DOWN_SPEED
 					.if hitFlag1 == 1
 						mov te.canChange,0
+					.else
+						mov te.canChange,1
 					.endif	
 				.endif	
 			.endif	
@@ -460,9 +463,12 @@ _Down		proc
 				std
 				lea edi, blockList[eax+BLOCK_NUM_X-1]
 				lea esi, blockList[eax-1]
-				
 				rep movsb
 				cld
+				mov ecx,BLOCK_NUM_X
+				lea edi,blockList
+				lea esi,blockListTemp
+				rep movsb
 				;<<<<<<<<<<<<<<<<<<<<<<<<<<
 			.endif	
 			inc idx
