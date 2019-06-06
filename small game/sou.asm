@@ -115,7 +115,7 @@ _CreateFrontPic	proc
 				mov posY,ebx
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				;add posX,BLOCK_SIZE
@@ -124,7 +124,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				;add posX,BLOCK_SIZE
@@ -133,7 +133,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				;add posX,BLOCK_SIZE
@@ -142,7 +142,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 			.elseif	te.direction==1
@@ -154,7 +154,7 @@ _CreateFrontPic	proc
 				mov posY,ebx
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				add posX,BLOCK_SIZE
@@ -163,7 +163,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				add posX,BLOCK_SIZE
@@ -172,7 +172,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				add posX,BLOCK_SIZE
@@ -181,7 +181,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 			.endif	
@@ -293,11 +293,33 @@ _DeleteBackGround	proc
 _DeleteBackGround	endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _NewTe		proc
-	mov te.kind,0
-	mov te.direction,0
-	mov te.centerPosX,120
-	mov te.centerPosY,0
-	mov te.canChange,1
+	local	@stTime:SYSTEMTIME
+	local	randNum
+	invoke	GetLocalTime,addr @stTime
+	movzx	eax,@stTime.wSecond
+	;mov eax,0
+	invoke  crt_srand,eax
+	invoke  crt_rand
+	mov randNum,eax
+
+	mov ebx,2
+	mov eax,randNum
+	xor edx,edx
+	div ebx
+
+	.if edx == 0
+		mov te.kind,0
+		mov te.direction,0
+		mov te.centerPosX,120
+		mov te.centerPosY,30
+		mov te.canChange,1
+	.else
+		mov te.kind,0
+		mov te.direction,0
+		mov te.centerPosX,270
+		mov te.centerPosY,30
+		mov te.canChange,1
+	.endif	
 	ret
 _NewTe		endp	
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
