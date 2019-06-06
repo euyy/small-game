@@ -33,7 +33,7 @@ BLOCK_NUM	equ 300;BLOCK_NUM_X*BLOCK_NUM_Y
 WIN_SIZE_X	equ 15*30;BLOCK_NUM_X*BLOCK_SIZE
 WIN_SIZE_Y	equ 20*30;BLOCK_NUM_Y*BLOCK_SIZE
 
-DOWN_SPEED	equ 3
+DOWN_SPEED	equ 10
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 数据结构
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -434,7 +434,7 @@ _Down		proc
 					mov blockList[eax],1
 					mov newTe,1
 				.else
-					;add te.centerPosY,DOWN_SPEED
+					add te.centerPosY,DOWN_SPEED
 					.if hitFlag2 == 1
 						mov te.canChange,0
 					.else
@@ -454,7 +454,7 @@ _Down		proc
 					mov blockList[eax],1
 					mov newTe,1
 				.else
-					;add te.centerPosY,DOWN_SPEED
+					add te.centerPosY,DOWN_SPEED
 					.if hitFlag1 == 1
 						mov te.canChange,0
 					.else
@@ -463,6 +463,8 @@ _Down		proc
 				.endif	
 			.endif	
 		.endif
+		.else	
+		add te.centerPosY,DOWN_SPEED
 	.endif	
 
 	.if newTe == 1
@@ -500,7 +502,7 @@ _Down		proc
 		invoke _NewTe
 	.endif	
 
-	add te.centerPosY,DOWN_SPEED
+	;add te.centerPosY,DOWN_SPEED
 	ret
 _Down		endp	
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
