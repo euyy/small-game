@@ -33,7 +33,7 @@ BLOCK_NUM	equ 300;BLOCK_NUM_X*BLOCK_NUM_Y
 WIN_SIZE_X	equ 15*30;BLOCK_NUM_X*BLOCK_SIZE
 WIN_SIZE_Y	equ 20*30;BLOCK_NUM_Y*BLOCK_SIZE
 
-DOWN_SPEED	equ 3
+DOWN_SPEED	equ 10
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ; 数据结构
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -115,7 +115,7 @@ _CreateFrontPic	proc
 				mov posY,ebx
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				;add posX,BLOCK_SIZE
@@ -124,7 +124,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				;add posX,BLOCK_SIZE
@@ -133,7 +133,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				;add posX,BLOCK_SIZE
@@ -142,7 +142,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 			.elseif	te.direction==1
@@ -154,7 +154,7 @@ _CreateFrontPic	proc
 				mov posY,ebx
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				add posX,BLOCK_SIZE
@@ -163,7 +163,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				add posX,BLOCK_SIZE
@@ -172,7 +172,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 				add posX,BLOCK_SIZE
@@ -181,7 +181,7 @@ _CreateFrontPic	proc
 				mov ebx,posY
 				add eax,BLOCK_SIZE
 				mov posX_,eax
-				sub ebx,BLOCK_SIZE
+				add ebx,BLOCK_SIZE
 				mov posY_,ebx
 				invoke	Rectangle,hDcClock,posX,posY,posX_,posY_
 			.endif	
@@ -293,11 +293,33 @@ _DeleteBackGround	proc
 _DeleteBackGround	endp
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _NewTe		proc
-	mov te.kind,0
-	mov te.direction,0
-	mov te.centerPosX,120
-	mov te.centerPosY,0
-	mov te.canChange,1
+	local	@stTime:SYSTEMTIME
+	local	randNum
+	invoke	GetLocalTime,addr @stTime
+	movzx	eax,@stTime.wSecond
+	;mov eax,0
+	invoke  crt_srand,eax
+	invoke  crt_rand
+	mov randNum,eax
+
+	mov ebx,2
+	mov eax,randNum
+	xor edx,edx
+	div ebx
+
+	.if edx == 0
+		mov te.kind,0
+		mov te.direction,0
+		mov te.centerPosX,120
+		mov te.centerPosY,30
+		mov te.canChange,1
+	.else
+		mov te.kind,0
+		mov te.direction,0
+		mov te.centerPosX,270
+		mov te.centerPosY,30
+		mov te.canChange,1
+	.endif	
 	ret
 _NewTe		endp	
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -412,7 +434,7 @@ _Down		proc
 					mov blockList[eax],1
 					mov newTe,1
 				.else
-					;add te.centerPosY,DOWN_SPEED
+					add te.centerPosY,DOWN_SPEED
 					.if hitFlag2 == 1
 						mov te.canChange,0
 					.else
@@ -432,7 +454,7 @@ _Down		proc
 					mov blockList[eax],1
 					mov newTe,1
 				.else
-					;add te.centerPosY,DOWN_SPEED
+					add te.centerPosY,DOWN_SPEED
 					.if hitFlag1 == 1
 						mov te.canChange,0
 					.else
@@ -441,6 +463,8 @@ _Down		proc
 				.endif	
 			.endif	
 		.endif
+		.else	
+		add te.centerPosY,DOWN_SPEED
 	.endif	
 
 	.if newTe == 1
@@ -478,7 +502,7 @@ _Down		proc
 		invoke _NewTe
 	.endif	
 
-	add te.centerPosY,DOWN_SPEED
+	;add te.centerPosY,DOWN_SPEED
 	ret
 _Down		endp	
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
