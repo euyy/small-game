@@ -481,13 +481,14 @@ _Down		proc
 	add te.centerPosY,DOWN_SPEED
 	ret
 _Down		endp	
-
 ;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 		local	@stPS:PAINTSTRUCT
 		local	@hDC
 		local	@stPos:POINT
 		local	posX,posY
+		local	hitflag1,hitflag2,hitflag3,hitflag4
+		local	blockNo
 		mov	eax,uMsg
 ;********************************************************************
 		.if	eax ==	WM_TIMER
@@ -535,26 +536,239 @@ _ProcWinMain	proc	uses ebx edi esi hWnd,uMsg,wParam,lParam
 				.if te.kind == 0
 					.if te.direction == 0
 						.if te.centerPosX >= BLOCK_SIZE
-							sub te.centerPosX,BLOCK_SIZE
+							mov hitflag1,0
+							mov eax, te.centerPosY
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							push edx
+
+							;mov eax,edx
+							xor edx,edx
+							mov ebx,BLOCK_NUM_X
+							mul ebx
+							mov blockNo,eax
+							mov eax,te.centerPosX
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							add eax,blockNo
+
+							dec eax
+
+							mov blockNo, eax
+							sub eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							add eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							pop edx
+							.if edx != 0
+								add eax,BLOCK_NUM_X
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif
+							.endif	
+
+							.if hitflag1==0
+								sub te.centerPosX,BLOCK_SIZE
+							.endif	
 						.endif	
 					.elseif	
 						.if te.centerPosX >= 2*BLOCK_SIZE
-							sub te.centerPosX,BLOCK_SIZE
+							mov hitflag1,0
+							mov eax, te.centerPosY
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							push edx
+
+							;mov eax,edx
+							xor edx,edx
+							mov ebx,BLOCK_NUM_X
+							mul ebx
+							mov blockNo,eax
+							mov eax,te.centerPosX
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							add eax,blockNo
+
+							dec eax
+
+							mov blockNo, eax
+							sub eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							add eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							pop edx
+							.if edx != 0
+								mov eax,blockNo
+								add eax,BLOCK_NUM_X
+								sub eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif	
+								add eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif	
+								add eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif
+								add eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif								
+							.endif
+							.if hitflag1==0
+								sub te.centerPosX,BLOCK_SIZE
+							.endif
 						.endif
 					.endif	
-				.endif	
-						
+				.endif			
 			.elseif	eax == VK_S			
 				
 			.elseif	eax == VK_D
 				.if te.kind == 0
 					.if te.direction == 0
 						.if te.centerPosX <= BLOCK_NUM_X*BLOCK_SIZE-2*BLOCK_SIZE
-							add te.centerPosX,BLOCK_SIZE
+							mov hitflag1,0
+							mov eax, te.centerPosY
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							push edx
+
+							;mov eax,edx
+							xor edx,edx
+							mov ebx,BLOCK_NUM_X
+							mul ebx
+							mov blockNo,eax
+							mov eax,te.centerPosX
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							add eax,blockNo
+
+							inc eax
+
+							mov blockNo, eax
+							sub eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							add eax,BLOCK_NUM_X
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							pop edx
+							.if edx != 0
+								add eax,BLOCK_NUM_X
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif
+							.endif	
+
+							.if hitflag1==0
+								add te.centerPosX,BLOCK_SIZE
+							.endif	
 						.endif	
 					.elseif	
 						.if te.centerPosX <= BLOCK_NUM_X*BLOCK_SIZE-4*BLOCK_SIZE
-							add te.centerPosX,BLOCK_SIZE
+							mov hitflag1,0
+							mov eax, te.centerPosY
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							push edx
+
+							;mov eax,edx
+							xor edx,edx
+							mov ebx,BLOCK_NUM_X
+							mul ebx
+							mov blockNo,eax
+							mov eax,te.centerPosX
+							xor edx,edx
+							mov ebx,BLOCK_SIZE
+							div ebx
+							add eax,blockNo
+
+							inc eax
+
+							mov blockNo, eax
+							sub eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif	
+							add eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							add eax,1
+							.if blockList[eax]==1
+								mov hitflag1,1
+							.endif
+							pop edx
+							.if edx != 0
+								mov eax,blockNo
+								add eax,BLOCK_NUM_X
+								sub eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif	
+								add eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif	
+								add eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif
+								add eax,1
+								.if blockList[eax]==1
+									mov hitflag1,1
+								.endif								
+							.endif
+							.if hitflag1==0
+								add te.centerPosX,BLOCK_SIZE
+							.endif
 						.endif
 					.endif	
 				.endif
